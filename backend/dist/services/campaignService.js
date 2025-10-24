@@ -36,11 +36,11 @@ class CampaignService {
             // Create budget using direct mutation matching n8n REST API call
             console.log('Creating campaign budget with amountMicros:', budgetMicros);
             
-            const budgetResponse = await customer.campaignBudgets.create({
+            const budgetResponse = await customer.campaignBudgets.create([{
                 name: `${campaignName} - Budget - ${Date.now()}`,
                 amount_micros: budgetMicros.toString(),
                 delivery_method: 'STANDARD'
-            });
+            }]);
             
             console.log('Budget response type:', typeof budgetResponse);
             console.log('Budget response:', JSON.stringify(budgetResponse, null, 2));
@@ -80,7 +80,7 @@ class CampaignService {
             };
 
             console.log('Creating campaign with data:', JSON.stringify(campaignData, null, 2));
-            const campaignResponse = await customer.campaigns.create(campaignData);
+            const campaignResponse = await customer.campaigns.create([campaignData]);
             
             console.log('Campaign response type:', typeof campaignResponse);
             console.log('Campaign response:', JSON.stringify(campaignResponse, null, 2));
