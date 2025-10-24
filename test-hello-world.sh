@@ -1,3 +1,21 @@
+#!/bin/bash
+# Create a simple Hello World page for testing
+# Run this on your production server
+
+set -e
+
+echo "🔧 Creating Hello World test page..."
+
+cd "$(dirname "$0")"
+
+# Backup current index.html
+if [ -f "frontend/dist/index.html" ]; then
+    cp frontend/dist/index.html frontend/dist/index.html.backup.$(date +%Y%m%d_%H%M%S)
+    echo "✅ Backup created"
+fi
+
+# Create simple Hello World page
+cat > frontend/dist/index.html << 'EOF'
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -87,3 +105,20 @@
     </div>
 </body>
 </html>
+EOF
+
+echo "✅ Hello World page created"
+echo ""
+echo "📦 Restarting container..."
+docker-compose restart app
+
+echo ""
+echo "⏳ Waiting for container to start..."
+sleep 3
+
+echo ""
+echo "✅ Done!"
+echo "🌐 Open https://opsotools.com/gacc in your browser"
+echo ""
+echo "You should see a beautiful 'Hello World' page!"
+
