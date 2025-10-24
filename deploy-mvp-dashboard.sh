@@ -1,3 +1,21 @@
+#!/bin/bash
+# Deploy MVP Dashboard with Google Ads Integration
+# Run this on your production server
+
+set -e
+
+echo "🚀 Deploying MVP Dashboard with Google Ads Integration..."
+
+cd "$(dirname "$0")"
+
+# Backup
+if [ -f "frontend/dist/index.html" ]; then
+    cp frontend/dist/index.html frontend/dist/index.html.backup.$(date +%Y%m%d_%H%M%S)
+    echo "✅ Backup created"
+fi
+
+# Deploy MVP dashboard
+cat > frontend/dist/index.html << 'MVPEOF'
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -178,9 +196,7 @@
                 const data = await response.json();
                 
                 if (data.authUrl) {
-                    // Store that we're authenticating
                     sessionStorage.setItem('authenticating', 'true');
-                    // Redirect to Google OAuth
                     window.location.href = data.authUrl;
                 } else {
                     showError('Failed to get authorization URL');
@@ -207,24 +223,17 @@
             document.getElementById('connectBtn').disabled = true;
 
             try {
-                // Exchange code for tokens
-                const response = await fetch(`/gacc/api/auth/callback?code=${code}`);
+                const response = await fetch(\`/gacc/api/auth/callback?code=\${code}\`);
                 const data = await response.json();
 
                 if (data.tokens && data.tokens.refresh_token) {
-                    // Store refresh token
                     sessionStorage.setItem('refreshToken', data.tokens.refresh_token);
-                    
-                    // Update status
                     document.getElementById('connectionStatus').className = 'status connected';
                     document.getElementById('connectionStatus').textContent = 'Connected';
-                    
                     showSuccess('Successfully connected to Google Ads!');
-                    
-                    // Load accounts
                     await loadAccounts(data.tokens.refresh_token);
                 } else {
-                    showError('Authentication succeeded but no refresh token received. You may need to revoke access and try again.');
+                    showError('Authentication succeeded but no refresh token received.');
                 }
             } catch (error) {
                 showError('Error during authentication: ' + error.message);
@@ -250,7 +259,7 @@
                     displayAccounts(data.accounts);
                     document.getElementById('accountsSection').style.display = 'block';
                 } else {
-                    showError('No Google Ads accounts found. Make sure you have access to at least one account.');
+                    showError('No Google Ads accounts found.');
                 }
             } catch (error) {
                 showError('Error loading accounts: ' + error.message);
@@ -261,48 +270,43 @@
 
         function displayAccounts(accounts) {
             const accountsList = document.getElementById('accountsList');
-            accountsList.innerHTML = accounts.map((accountId, index) => `
-                <div class="account-item" onclick="selectAccount('${accountId}')">
+            accountsList.innerHTML = accounts.map((accountId, index) => \`
+                <div class="account-item" onclick="selectAccount('\${accountId}')">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <div>
-                            <strong style="color: #2d3748;">Account ${index + 1}</strong>
+                            <strong style="color: #2d3748;">Account \${index + 1}</strong>
                             <div style="color: #718096; font-size: 14px; margin-top: 4px;">
-                                ID: ${accountId}
+                                ID: \${accountId}
                             </div>
                         </div>
                         <span style="color: #667eea; font-size: 20px;">→</span>
                     </div>
                 </div>
-            `).join('');
+            \`).join('');
         }
 
         function selectAccount(accountId) {
-            // Store selected account
             sessionStorage.setItem('selectedAccount', accountId);
-            
-            // Visual feedback
             document.querySelectorAll('.account-item').forEach(item => {
                 item.classList.remove('selected');
             });
             event.target.closest('.account-item').classList.add('selected');
-            
-            showSuccess(`Selected account: ${accountId}`);
+            showSuccess(\`Selected account: \${accountId}\`);
             console.log('Selected account:', accountId);
         }
 
         function showError(message) {
             const errorDiv = document.getElementById('errorMessage');
-            errorDiv.innerHTML = `<div class="error">❌ ${message}</div>`;
+            errorDiv.innerHTML = \`<div class="error">❌ \${message}</div>\`;
             setTimeout(() => errorDiv.innerHTML = '', 10000);
         }
 
         function showSuccess(message) {
             const successDiv = document.getElementById('successMessage');
-            successDiv.innerHTML = `<div class="success">✅ ${message}</div>`;
+            successDiv.innerHTML = \`<div class="success">✅ \${message}</div>\`;
             setTimeout(() => successDiv.innerHTML = '', 5000);
         }
 
-        // Check if we have a stored refresh token
         const storedToken = sessionStorage.getItem('refreshToken');
         if (storedToken) {
             document.getElementById('connectionStatus').className = 'status connected';
@@ -312,3 +316,25 @@
     </script>
 </body>
 </html>
+MVPEOF
+
+echo "✅ MVP Dashboard deployed"
+echo ""
+echo "📦 Restarting container..."
+docker-compose restart app
+
+echo ""
+echo "⏳ Waiting for container to start..."
+sleep 3
+
+echo ""
+echo "✅ Done! MVP Dashboard deployed successfully!"
+echo ""
+echo "🌐 Open https://opsotools.com/gacc in your browser"
+echo ""
+echo "Features available:"
+echo "  ✓ Connect Google Ads account via OAuth2"
+echo "  ✓ View all your Google Ads accounts"
+echo "  ✓ Select an account to work with"
+echo "  ✓ API health monitoring"
+
