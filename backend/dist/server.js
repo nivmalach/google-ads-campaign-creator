@@ -10,6 +10,7 @@ const path_1 = __importDefault(require("path"));
 const database_1 = require("./config/database");
 const dotenv_1 = __importDefault(require("dotenv"));
 const authRoutes_1 = __importDefault(require("./routes/authRoutes"));
+const campaignRoutes_1 = __importDefault(require("./routes/campaignRoutes"));
 const googleAdsAuth_1 = require("./utils/googleAdsAuth");
 dotenv_1.default.config();
 const app = (0, express_1.default)();
@@ -30,6 +31,7 @@ app.use(express_1.default.json());
 
 // API Routes (with base path support)
 app.use(`${BASE_PATH}/api/auth`, authRoutes_1.default);
+app.use(`${BASE_PATH}/api/campaigns`, campaignRoutes_1.default);
 
 // Health check endpoint (with and without base path for compatibility)
 const healthCheck = (req, res) => {

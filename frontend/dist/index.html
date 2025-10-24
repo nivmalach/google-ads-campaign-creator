@@ -117,6 +117,66 @@
             border-radius: 8px;
             margin-bottom: 20px;
         }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.2s;
+        }
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .form-group small {
+            display: block;
+            color: #718096;
+            margin-top: 6px;
+            font-size: 13px;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+        .btn-primary {
+            background: #667eea;
+        }
+        .btn-secondary {
+            background: #718096;
+            margin-left: 10px;
+        }
+        .hidden {
+            display: none;
+        }
+        #campaignSection {
+            animation: fadeIn 0.3s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body>
@@ -155,6 +215,103 @@
                 <strong>Environment:</strong> Production<br>
                 <strong>Health Check:</strong> <a href="/gacc/api/health" style="color: #667eea;">View</a>
             </p>
+        </div>
+
+        <!-- Campaign Creation Section -->
+        <div id="campaignSection" class="card hidden">
+            <h2>🎨 Create Display Campaign</h2>
+            <p style="color: #718096; margin-bottom: 30px;">
+                Selected Account: <strong id="selectedAccountDisplay">None</strong>
+            </p>
+
+            <form id="campaignForm" onsubmit="createCampaign(event)">
+                <div class="form-group">
+                    <label for="campaignName">Campaign Name *</label>
+                    <input 
+                        type="text" 
+                        id="campaignName" 
+                        name="campaignName" 
+                        required 
+                        placeholder="e.g., Summer Sale Display Campaign 2024"
+                    >
+                    <small>Give your campaign a descriptive name</small>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="dailyBudget">Daily Budget (USD) *</label>
+                        <input 
+                            type="number" 
+                            id="dailyBudget" 
+                            name="dailyBudget" 
+                            required 
+                            min="1" 
+                            step="0.01"
+                            placeholder="50.00"
+                        >
+                        <small>How much you want to spend per day</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="campaignStatus">Campaign Status *</label>
+                        <select id="campaignStatus" name="campaignStatus" required>
+                            <option value="ENABLED">Enabled (Active)</option>
+                            <option value="PAUSED">Paused</option>
+                        </select>
+                        <small>Start enabled or paused</small>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="locations">Target Locations *</label>
+                    <input 
+                        type="text" 
+                        id="locations" 
+                        name="locations" 
+                        required 
+                        placeholder="e.g., United States, Canada, United Kingdom"
+                    >
+                    <small>Enter country names separated by commas</small>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="bidStrategy">Bid Strategy *</label>
+                        <select id="bidStrategy" name="bidStrategy" required onchange="toggleBidAmount()">
+                            <option value="MAXIMIZE_CONVERSIONS">Maximize Conversions</option>
+                            <option value="TARGET_CPA">Target CPA</option>
+                            <option value="MAXIMIZE_CONVERSION_VALUE">Maximize Conversion Value</option>
+                            <option value="TARGET_ROAS">Target ROAS</option>
+                            <option value="MANUAL_CPC">Manual CPC</option>
+                        </select>
+                        <small>How Google should optimize your bids</small>
+                    </div>
+
+                    <div class="form-group" id="bidAmountGroup" style="display: none;">
+                        <label for="bidAmount">Bid/Target Amount (USD)</label>
+                        <input 
+                            type="number" 
+                            id="bidAmount" 
+                            name="bidAmount" 
+                            min="0.01" 
+                            step="0.01"
+                            placeholder="1.50"
+                        >
+                        <small>Target CPA or manual CPC amount</small>
+                    </div>
+                </div>
+
+                <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #e2e8f0;">
+                    <button type="submit" class="btn btn-primary" id="createCampaignBtn">
+                        🚀 Create Campaign
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="resetForm()">
+                        🔄 Reset Form
+                    </button>
+                </div>
+            </form>
+
+            <div id="campaignResult" style="margin-top: 20px;"></div>
         </div>
     </div>
 
@@ -304,8 +461,123 @@
             });
             event.target.closest('.account-item').classList.add('selected');
             
-            showSuccess(`Selected account: ${accountId}`);
+            // Show campaign creation section
+            document.getElementById('campaignSection').classList.remove('hidden');
+            document.getElementById('selectedAccountDisplay').textContent = accountId;
+            
+            // Scroll to campaign section
+            setTimeout(() => {
+                document.getElementById('campaignSection').scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'start' 
+                });
+            }, 100);
+            
+            showSuccess(`Selected account: ${accountId} - Ready to create campaigns!`);
             console.log('Selected account:', accountId);
+        }
+
+        function toggleBidAmount() {
+            const bidStrategy = document.getElementById('bidStrategy').value;
+            const bidAmountGroup = document.getElementById('bidAmountGroup');
+            
+            // Show bid amount for TARGET_CPA and MANUAL_CPC
+            if (bidStrategy === 'TARGET_CPA' || bidStrategy === 'MANUAL_CPC' || bidStrategy === 'TARGET_ROAS') {
+                bidAmountGroup.style.display = 'block';
+                document.getElementById('bidAmount').required = true;
+            } else {
+                bidAmountGroup.style.display = 'none';
+                document.getElementById('bidAmount').required = false;
+            }
+        }
+
+        async function createCampaign(event) {
+            event.preventDefault();
+            
+            const createBtn = document.getElementById('createCampaignBtn');
+            const originalText = createBtn.innerHTML;
+            createBtn.disabled = true;
+            createBtn.innerHTML = '⏳ Creating...';
+            
+            try {
+                const selectedAccount = sessionStorage.getItem('selectedAccount');
+                const refreshToken = sessionStorage.getItem('refreshToken');
+                
+                if (!selectedAccount || !refreshToken) {
+                    throw new Error('No account selected or not authenticated');
+                }
+                
+                const formData = {
+                    customerId: selectedAccount,
+                    refreshToken: refreshToken,
+                    campaignName: document.getElementById('campaignName').value,
+                    dailyBudget: parseFloat(document.getElementById('dailyBudget').value),
+                    status: document.getElementById('campaignStatus').value,
+                    locations: document.getElementById('locations').value.split(',').map(l => l.trim()),
+                    bidStrategy: document.getElementById('bidStrategy').value,
+                    bidAmount: document.getElementById('bidAmount').value ? parseFloat(document.getElementById('bidAmount').value) : null
+                };
+                
+                console.log('Creating campaign with data:', formData);
+                
+                const response = await fetch('/gacc/api/campaigns/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    showCampaignSuccess(data);
+                    document.getElementById('campaignForm').reset();
+                } else {
+                    throw new Error(data.error || data.message || 'Campaign creation failed');
+                }
+            } catch (error) {
+                console.error('Error creating campaign:', error);
+                showCampaignError(error.message);
+            } finally {
+                createBtn.disabled = false;
+                createBtn.innerHTML = originalText;
+            }
+        }
+
+        function showCampaignSuccess(data) {
+            const resultDiv = document.getElementById('campaignResult');
+            resultDiv.innerHTML = `
+                <div class="success">
+                    <strong>✅ Campaign Created Successfully!</strong><br>
+                    <div style="margin-top: 10px; font-size: 14px;">
+                        Campaign ID: ${data.campaignId || 'N/A'}<br>
+                        Name: ${data.campaignName || 'N/A'}<br>
+                        Resource Name: ${data.resourceName || 'N/A'}
+                    </div>
+                </div>
+            `;
+            
+            // Scroll to result
+            setTimeout(() => {
+                resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 100);
+        }
+
+        function showCampaignError(message) {
+            const resultDiv = document.getElementById('campaignResult');
+            resultDiv.innerHTML = `
+                <div class="error">
+                    <strong>❌ Campaign Creation Failed</strong><br>
+                    <div style="margin-top: 10px; font-size: 14px;">
+                        ${message}
+                    </div>
+                </div>
+            `;
+        }
+
+        function resetForm() {
+            document.getElementById('campaignForm').reset();
+            document.getElementById('campaignResult').innerHTML = '';
+            toggleBidAmount();
         }
 
         function showError(message) {
