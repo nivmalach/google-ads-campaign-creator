@@ -28,15 +28,10 @@ class GoogleAdsAuth {
         try {
             const client = this.getInstance();
             console.log('Fetching accessible customers with refresh token...');
+            console.log('Refresh token length:', refreshToken?.length || 0);
             
-            // Create a customer instance with the refresh token
-            const customer = client.Customer({
-                customer_id: '0', // Use 0 for listAccessibleCustomers
-                refresh_token: refreshToken
-            });
-            
-            console.log('Calling listAccessibleCustomers...');
-            const response = await customer.listAccessibleCustomers();
+            // Call listAccessibleCustomers directly on the client
+            const response = await client.listAccessibleCustomers(refreshToken);
             console.log('API Response:', JSON.stringify(response, null, 2));
             
             if (!response || !response.resource_names) {
