@@ -33,20 +33,16 @@ class CampaignService {
             // Convert daily budget to micros (Google Ads uses micros for currency)
             const budgetMicros = Math.round(dailyBudget * 1_000_000);
             
-            // Create an explicitly shared budget with a name
-            const budgetOperation = {
-                create: {
-                    name: `Budget for ${campaignName}`,
-                    amount_micros: budgetMicros,
-                    delivery_method: 'STANDARD',
-                    explicitly_shared: true
-                }
-            };
-
-            console.log('Creating explicitly shared campaign budget:', JSON.stringify(budgetOperation, null, 2));
-            const budgetResponse = await customer.campaignBudgets.create([budgetOperation]);
+            // Create a simple campaign budget with minimal required fields
+            console.log('Creating campaign budget with amount_micros:', budgetMicros);
+            const budgetResponse = await customer.campaignBudgets.create({
+                name: `Budget ${Date.now()}`,  // Unique name
+                amount_micros: budgetMicros,
+                explicitly_shared: true
+            });
+            console.log('Budget response:', JSON.stringify(budgetResponse, null, 2));
             const budgetResourceName = budgetResponse.results[0].resource_name;
-            console.log('Budget created:', budgetResourceName);
+            console.log('Budget created successfully:', budgetResourceName);
 
             // Build bidding strategy configuration
             const biddingConfig = this.buildBiddingStrategy(bidStrategy, bidAmount);
