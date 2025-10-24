@@ -30,6 +30,9 @@ RUN sed -i 's|href="/vite.svg"|href="/gacc/vite.svg"|g' ./public/index.html && \
 RUN sed -i "s|return this.oauth2Client.generateAuthUrl({|const redirectUri = process.env.OAUTH_REDIRECT_URI \|\| 'https://opsotools.com/gacc/api/auth/callback';\n        return this.oauth2Client.generateAuthUrl({\n            redirect_uri: redirectUri,|" ./backend/dist/utils/oauth2.js && \
     sed -i "s|const { tokens } = await this.oauth2Client.getToken(code);|const redirectUri = process.env.OAUTH_REDIRECT_URI \|\| 'https://opsotools.com/gacc/api/auth/callback';\n            const { tokens } = await this.oauth2Client.getToken({\n                code: code,\n                redirect_uri: redirectUri\n            });|" ./backend/dist/utils/oauth2.js
 
+# Fix OAuth callback to redirect to frontend instead of showing JSON
+RUN sed -i "s|res.json({|const redirectUrl = \`\${process.env.BASE_PATH || ''}/gacc?code=\${code}\&refresh_token=\${tokens.refresh_token || ''}\&access_token=\${tokens.access_token || ''}\`;\n            res.redirect(redirectUrl);\n            return;\n            res.json({|" ./backend/dist/controllers/authController.js
+
 # Expose port
 EXPOSE 3000
 

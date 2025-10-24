@@ -18,20 +18,20 @@ class AuthController {
         try {
             const { code } = req.query;
             if (!code || typeof code !== 'string') {
-                return res.status(400).json({ error: 'Authorization code is required' });
+                return res.redirect(`${process.env.BASE_PATH || ''}/gacc?error=no_code`);
             }
             const tokens = await oauth2_1.OAuth2Helper.getTokens(code);
             // Initialize Google Ads API with the tokens
             const { clientId, clientSecret, developerToken } = process.env;
             googleAdsAuth_1.GoogleAdsAuth.initialize(clientId, clientSecret, developerToken);
-            res.json({
-                message: 'Authentication successful',
-                tokens
-            });
+            
+            // Redirect back to frontend with tokens
+            const redirectUrl = `${process.env.BASE_PATH || ''}/gacc?code=${code}&refresh_token=${tokens.refresh_token || ''}&access_token=${tokens.access_token || ''}`;
+            res.redirect(redirectUrl);
         }
         catch (error) {
             console.error('Error handling callback:', error);
-            res.status(500).json({ error: 'Authentication failed' });
+            res.redirect(`${process.env.BASE_PATH || ''}/gacc?error=auth_failed`);
         }
     }
     static async listAccounts(req, res) {
