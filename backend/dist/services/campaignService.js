@@ -159,9 +159,8 @@ class CampaignService {
                 };
             
             case 'MAXIMIZE_CONVERSIONS':
-                // Use manual CPC for now (smart bidding requires additional setup)
                 return {
-                    manual_cpc: {}
+                    maximize_conversions: {}
                 };
             
             case 'MAXIMIZE_CONVERSION_VALUE':
@@ -234,18 +233,19 @@ class CampaignService {
     static async addLocationTargeting(customer, campaignResourceName, geoTargets) {
         try {
             const campaignCriterionOperations = geoTargets.map(geo => ({
-                create: {
-                    campaign: campaignResourceName,
-                    location: geo,
-                    type: 'LOCATION'
+                campaign: campaignResourceName,
+                location: {
+                    geo_target_constant: geo.geo_target_constant
                 }
             }));
 
+            console.log('Adding location targeting:', JSON.stringify(campaignCriterionOperations, null, 2));
             await customer.campaignCriteria.create(campaignCriterionOperations);
-            console.log(`Added ${geoTargets.length} location targets`);
+            console.log(`Added ${geoTargets.length} location targets successfully`);
         }
         catch (error) {
             console.error('Error adding location targeting:', error);
+            console.error('Error details:', error.message, error.stack);
             // Don't throw - campaign is already created
         }
     }
