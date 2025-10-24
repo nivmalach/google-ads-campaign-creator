@@ -33,15 +33,17 @@ class CampaignService {
             // Convert daily budget to micros (Google Ads uses micros for currency)
             const budgetMicros = Math.round(dailyBudget * 1_000_000);
             
-            // First, create a budget (implicit budget - no name, not explicitly shared)
+            // Create an explicitly shared budget with a name
             const budgetOperation = {
                 create: {
+                    name: `Budget for ${campaignName}`,
                     amount_micros: budgetMicros,
-                    delivery_method: 'STANDARD'
+                    delivery_method: 'STANDARD',
+                    explicitly_shared: true
                 }
             };
 
-            console.log('Creating campaign budget with operation:', JSON.stringify(budgetOperation, null, 2));
+            console.log('Creating explicitly shared campaign budget:', JSON.stringify(budgetOperation, null, 2));
             const budgetResponse = await customer.campaignBudgets.create([budgetOperation]);
             const budgetResourceName = budgetResponse.results[0].resource_name;
             console.log('Budget created:', budgetResourceName);
