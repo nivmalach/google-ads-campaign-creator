@@ -8,13 +8,14 @@ class GoogleAdsAuth {
             console.log('Initializing Google Ads API with credentials:', {
                 clientId: clientId ? `${clientId.substring(0, 10)}...` : 'MISSING',
                 clientSecret: clientSecret ? 'SET' : 'MISSING',
-                developerToken: developerToken ? 'SET' : 'MISSING'
+                developerToken: developerToken ? `${developerToken.substring(0, 5)}...${developerToken.substring(developerToken.length - 3)}` : 'MISSING'
             });
             this.instance = new google_ads_api_1.GoogleAdsApi({
                 client_id: clientId,
                 client_secret: clientSecret,
                 developer_token: developerToken
             });
+            console.log('Google Ads API instance created successfully');
         }
         return this.instance;
     }
@@ -50,7 +51,18 @@ class GoogleAdsAuth {
         }
         catch (error) {
             console.error('Error fetching customer IDs:', error);
-            console.error('Error details:', error.message, error.stack);
+            if (error.errors && error.errors.length > 0) {
+                console.error('Google Ads API Errors:', JSON.stringify(error.errors, null, 2));
+                error.errors.forEach((err, index) => {
+                    console.error(`Error ${index + 1}:`, {
+                        message: err.message,
+                        errorCode: err.error_code,
+                        details: err
+                    });
+                });
+            }
+            console.error('Error message:', error.message);
+            console.error('Error stack:', error.stack);
             throw error;
         }
     }
