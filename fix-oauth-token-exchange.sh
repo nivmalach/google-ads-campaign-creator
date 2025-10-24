@@ -1,3 +1,24 @@
+#!/bin/bash
+# Fix OAuth2 token exchange to include redirect_uri
+# Run this on your production server
+
+set -e
+
+echo "🔧 Fixing OAuth2 token exchange..."
+
+cd "$(dirname "$0")"
+
+if [ ! -f "backend/dist/utils/oauth2.js" ]; then
+    echo "❌ Error: backend/dist/utils/oauth2.js not found"
+    exit 1
+fi
+
+# Backup
+cp backend/dist/utils/oauth2.js backend/dist/utils/oauth2.js.backup.$(date +%Y%m%d_%H%M%S)
+echo "✅ Backup created"
+
+# Create the complete fixed file
+cat > backend/dist/utils/oauth2.js << 'EOF'
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.OAuth2Helper = void 0;
@@ -13,7 +34,7 @@ class OAuth2Helper {
                 'https://www.googleapis.com/auth/userinfo.profile',
                 'https://www.googleapis.com/auth/userinfo.email'
             ],
-            prompt: 'consent' // Force to get refresh_token
+            prompt: 'consent'
         });
     }
     static async getTokens(code) {
@@ -45,3 +66,26 @@ class OAuth2Helper {
 }
 exports.OAuth2Helper = OAuth2Helper;
 OAuth2Helper.oauth2Client = new googleapis_1.google.auth.OAuth2(process.env.GOOGLE_ADS_CLIENT_ID, process.env.GOOGLE_ADS_CLIENT_SECRET, process.env.OAUTH_REDIRECT_URI);
+EOF
+
+echo "✅ File updated with complete OAuth2 fix"
+echo ""
+echo "📦 Restarting container..."
+docker-compose restart app
+
+echo ""
+echo "⏳ Waiting for container to start..."
+sleep 5
+
+echo ""
+echo "✅ Done! OAuth2 token exchange fixed"
+echo ""
+echo "🌐 Try the authentication flow again at:"
+echo "   https://opsotools.com/gacc"
+echo ""
+echo "The full OAuth flow should now work:"
+echo "  1. Click 'Connect Google Ads Account'"
+echo "  2. Authorize with Google"
+echo "  3. Get redirected back with tokens"
+echo "  4. See your Google Ads accounts!"
+
