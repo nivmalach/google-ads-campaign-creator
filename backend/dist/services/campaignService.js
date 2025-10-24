@@ -36,11 +36,11 @@ class CampaignService {
             // Create budget using direct mutation matching n8n REST API call
             console.log('Creating campaign budget with amountMicros:', budgetMicros);
             
-            // Create implicit budget (NO name = implicit, works with smart bidding)
+            // Create budget matching n8n working format
             const budgetResponse = await customer.campaignBudgets.create([{
-                amount_micros: budgetMicros.toString(),
+                name: `${campaignName} Budget ${Date.now()}`,
+                amount_micros: budgetMicros,  // As number, not string
                 delivery_method: 'STANDARD'
-                // Note: NO name field = implicit budget (compatible with smart bidding)
             }]);
             
             console.log('Budget response type:', typeof budgetResponse);
@@ -159,8 +159,9 @@ class CampaignService {
                 };
             
             case 'MAXIMIZE_CONVERSIONS':
+                // Use manual CPC for now (smart bidding requires additional setup)
                 return {
-                    maximize_conversions: {}
+                    manual_cpc: {}
                 };
             
             case 'MAXIMIZE_CONVERSION_VALUE':
