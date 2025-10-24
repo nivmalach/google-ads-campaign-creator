@@ -36,12 +36,11 @@ class CampaignService {
             // Create budget using direct mutation matching n8n REST API call
             console.log('Creating campaign budget with amountMicros:', budgetMicros);
             
-            // Create budget without explicitly_shared (implicit budget works with smart bidding)
+            // Create implicit budget (NO name = implicit, works with smart bidding)
             const budgetResponse = await customer.campaignBudgets.create([{
-                name: `${campaignName} - Budget - ${Date.now()}`,
                 amount_micros: budgetMicros.toString(),
                 delivery_method: 'STANDARD'
-                // Note: NOT setting explicitly_shared - implicit budgets work with smart bidding
+                // Note: NO name field = implicit budget (compatible with smart bidding)
             }]);
             
             console.log('Budget response type:', typeof budgetResponse);
