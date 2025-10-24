@@ -1,0 +1,27 @@
+{
+  "name": "google-ads-campaign-creator",
+  "version": "1.0.0",
+  "description": "Google Ads Campaign Creator - MVP",
+  "main": "backend/dist/server.js",
+  "scripts": {
+    "start": "node backend/dist/server.js",
+    "docker:build": "docker-compose build",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f"
+  },
+  "keywords": ["google-ads", "automation", "campaign-creator"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "typeorm": "^0.3.17",
+    "pg": "^8.11.3",
+    "reflect-metadata": "^0.1.13",
+    "google-ads-api": "^12.3.0",
+    "googleapis": "^128.0.0"
+  }
+}
+

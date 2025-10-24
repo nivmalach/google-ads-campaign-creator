@@ -1,0 +1,41 @@
+services:
+  app:
+    build: .
+    container_name: google-ads-campaign-creator
+    restart: unless-stopped
+    environment:
+      PORT: ${PORT:-3000}
+      NODE_ENV: ${NODE_ENV:-production}
+      GOOGLE_ADS_CLIENT_ID: ${GOOGLE_ADS_CLIENT_ID}
+      GOOGLE_ADS_CLIENT_SECRET: ${GOOGLE_ADS_CLIENT_SECRET}
+      GOOGLE_ADS_DEVELOPER_TOKEN: ${GOOGLE_ADS_DEVELOPER_TOKEN}
+      DATABASE_URL: postgres://google-ads-campaign-creator:NM3103LLK6@db:5432/google-ads-campaign-creator
+    networks:
+      sharednet:
+        aliases:
+          - google-ads-campaign-creator
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15-alpine
+    container_name: google-ads-campaign-creator-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: google-ads-campaign-creator
+      POSTGRES_PASSWORD: NM3103LLK6
+      POSTGRES_DB: google-ads-campaign-creator
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      sharednet:
+        aliases:
+          - google-ads-campaign-creator-db
+
+networks:
+  sharednet:
+    external: true
+
+volumes:
+  postgres_data:
+    name: google-ads-campaign-creator-postgres-data
