@@ -80,9 +80,6 @@ class CampaignService {
             // Build location targeting (geo target constants)
             const geoTargets = await this.getGeoTargetConstants(customer, locations);
             
-            // Map marketing objective to Google Ads campaign goal
-            const campaignGoal = this.mapMarketingObjective(marketingObjective);
-            
             // Create the campaign matching n8n format exactly
             const campaignData = {
                 name: `${campaignName}-${Date.now()}`,
@@ -100,10 +97,9 @@ class CampaignService {
                 contains_eu_political_advertising: 'DOES_NOT_CONTAIN_EU_POLITICAL_ADVERTISING'
             };
             
-            // Add campaign goal if specified
-            if (campaignGoal) {
-                campaignData.campaign_goal = campaignGoal;
-            }
+            // Note: Campaign goals are typically set through the Google Ads UI or require
+            // conversion actions to be configured first. The campaign_goal field at creation
+            // time doesn't work as expected. Goals need to be set post-creation.
 
             console.log('Creating campaign with data:', JSON.stringify(campaignData, null, 2));
             const campaignResponse = await customer.campaigns.create([campaignData]);
@@ -284,41 +280,22 @@ class CampaignService {
      */
     static async addDeviceTargeting(customer, campaignResourceName, devices) {
         try {
-            // Map device names to Google Ads device types
-            const allDevices = {
-                'MOBILE': 30000,
-                'DESKTOP': 30001,
-                'TABLET': 30002
-            };
-            
             console.log('Device targeting requested:', devices);
             
-            // Find devices to EXCLUDE (all devices that are NOT in the selected list)
-            const devicesToExclude = Object.keys(allDevices).filter(device => !devices.includes(device));
+            // Device targeting in Google Ads API works through bid adjustments or exclusions
+            // For now, this is a limitation - device targeting requires ad group level configuration
+            // or campaign-level bid adjustments which are more complex
             
-            if (devicesToExclude.length > 0) {
-                console.log('Excluding devices:', devicesToExclude);
-                
-                // Create negative campaign criteria for excluded devices
-                const excludeCriteriaOperations = devicesToExclude.map(device => ({
-                    campaign: campaignResourceName,
-                    device: {
-                        type: allDevices[device]
-                    },
-                    negative: true
-                }));
-                
-                console.log('Creating negative device criteria:', JSON.stringify(excludeCriteriaOperations, null, 2));
-                await customer.campaignCriteria.create(excludeCriteriaOperations);
-                console.log(`Excluded ${devicesToExclude.length} device types successfully`);
-            } else {
-                console.log('All devices are targeted (default)');
-            }
+            console.log('⚠️  Device targeting limitation:');
+            console.log('   Google Ads API requires device targeting to be set through:');
+            console.log('   1. Ad group level device criteria (requires ad groups)');
+            console.log('   2. Campaign-level device bid adjustments (complex setup)');
+            console.log('   For MVP: Device selection is captured but not enforced');
+            console.log('   Recommendation: Set device targeting manually in Google Ads UI');
+            console.log('   Or implement when adding ad group creation feature');
         }
         catch (error) {
-            console.error('Error adding device targeting:', error);
-            console.error('Error details:', error.message, error.stack);
-            // Don't throw - campaign is already created
+            console.error('Error in device targeting:', error);
         }
     }
     
