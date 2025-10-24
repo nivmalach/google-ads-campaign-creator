@@ -101,12 +101,19 @@ google-ads-campaign-creator/
 ## Production Deployment
 
 ### Environment Variables Required:
-- `GOOGLE_ADS_CLIENT_ID`
-- `GOOGLE_ADS_CLIENT_SECRET`
-- `GOOGLE_ADS_DEVELOPER_TOKEN`
-- `OAUTH_REDIRECT_URI`
-- `DATABASE_URL` (or separate DB_* variables)
-- `NODE_ENV=production`
+- `PORT` - Server port (default: 3000)
+- `NODE_ENV` - Environment (production/development)
+- `BASE_PATH` - Subpath for deployment (e.g., `/gacc` for opstools.com/gacc)
+- `PUBLIC_URL` - Full public URL (e.g., `https://opstools.com/gacc`)
+- `ALLOWED_ORIGINS` - Comma-separated CORS origins (e.g., `https://opstools.com`)
+- `SESSION_SECRET` - Secure random secret for sessions
+- `GOOGLE_ADS_CLIENT_ID` - Google OAuth Client ID
+- `GOOGLE_ADS_CLIENT_SECRET` - Google OAuth Client Secret
+- `GOOGLE_ADS_DEVELOPER_TOKEN` - Google Ads Developer Token
+- `OAUTH_REDIRECT_URI` - OAuth callback URL (must include BASE_PATH)
+- `DATABASE_URL` - PostgreSQL connection string
+
+📘 See [PRODUCTION_ENV.md](PRODUCTION_ENV.md) for detailed configuration guide.
 
 ### Deployment Steps:
 

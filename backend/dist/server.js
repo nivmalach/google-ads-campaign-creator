@@ -13,28 +13,49 @@ const authRoutes_1 = __importDefault(require("./routes/authRoutes"));
 const googleAdsAuth_1 = require("./utils/googleAdsAuth");
 dotenv_1.default.config();
 const app = (0, express_1.default)();
+
+// Configuration
+const BASE_PATH = process.env.BASE_PATH || '';
+const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS || '*';
+
 // Middleware
-app.use((0, cors_1.default)());
+const corsOptions = ALLOWED_ORIGINS === '*' 
+    ? { origin: '*' }
+    : { 
+        origin: ALLOWED_ORIGINS.split(',').map(o => o.trim()),
+        credentials: true 
+    };
+app.use((0, cors_1.default)(corsOptions));
 app.use(express_1.default.json());
 
-// API Routes
-app.use("/api/auth", authRoutes_1.default);
+// API Routes (with base path support)
+app.use(`${BASE_PATH}/api/auth`, authRoutes_1.default);
 
-// Health check endpoint
-app.get('/api/health', (req, res) => {
+// Health check endpoint (with and without base path for compatibility)
+const healthCheck = (req, res) => {
     res.json({ 
         status: 'ok', 
         timestamp: new Date().toISOString(),
-        environment: process.env.NODE_ENV || 'development'
+        environment: process.env.NODE_ENV || 'development',
+        basePath: BASE_PATH || '/',
+        publicUrl: process.env.PUBLIC_URL || `http://localhost:${process.env.PORT || 3000}`
     });
-});
+};
+app.get('/api/health', healthCheck);
+if (BASE_PATH) {
+    app.get(`${BASE_PATH}/api/health`, healthCheck);
+}
 
 // Serve static files from the public directory (frontend build)
 const publicPath = path_1.default.join(__dirname, '../../public');
-app.use(express_1.default.static(publicPath));
+if (BASE_PATH) {
+    app.use(BASE_PATH, express_1.default.static(publicPath));
+} else {
+    app.use(express_1.default.static(publicPath));
+}
 
 // Catch-all route to serve index.html for client-side routing
-app.get('*', (req, res) => {
+app.get(`${BASE_PATH}/*`, (req, res) => {
     res.sendFile(path_1.default.join(publicPath, 'index.html'));
 });
 
