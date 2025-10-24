@@ -33,13 +33,11 @@ class CampaignService {
             // Convert daily budget to micros (Google Ads uses micros for currency)
             const budgetMicros = Math.round(dailyBudget * 1_000_000);
             
-            // First, create a budget
+            // First, create a budget (implicit budget - no name, not explicitly shared)
             const budgetOperation = {
                 create: {
-                    name: `Budget for ${campaignName}`,
                     amount_micros: budgetMicros,
-                    delivery_method: 'STANDARD',
-                    period: 'DAILY'
+                    delivery_method: 'STANDARD'
                 }
             };
 
