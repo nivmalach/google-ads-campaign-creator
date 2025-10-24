@@ -18,16 +18,6 @@ COPY backend/package.json ./backend/
 # Copy frontend built files to public directory (served by backend)
 COPY frontend/dist ./public
 
-# Fix frontend asset paths for BASE_PATH deployment
-RUN sed -i 's|href="/vite.svg"|href="/gacc/vite.svg"|g' ./public/index.html && \
-    sed -i 's|src="/assets/|src="/gacc/assets/|g' ./public/index.html && \
-    sed -i 's|href="/assets/|href="/gacc/assets/|g' ./public/index.html && \
-    sed -i 's|<title>frontend</title>|<title>Google Ads Campaign Creator</title>|' ./public/index.html
-
-# Fix OAuth2 to include redirect_uri in both auth URL and token exchange
-RUN sed -i 's|return this.oauth2Client.generateAuthUrl({|const redirectUri = process.env.OAUTH_REDIRECT_URI; return this.oauth2Client.generateAuthUrl({ redirect_uri: redirectUri,|' ./backend/dist/utils/oauth2.js && \
-    sed -i 's|await this.oauth2Client.getToken(code)|await this.oauth2Client.getToken({ code: code, redirect_uri: process.env.OAUTH_REDIRECT_URI })|' ./backend/dist/utils/oauth2.js
-
 # Expose port
 EXPOSE 3000
 
