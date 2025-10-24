@@ -33,15 +33,28 @@ class CampaignService {
             // Convert daily budget to micros (Google Ads uses micros for currency)
             const budgetMicros = Math.round(dailyBudget * 1_000_000);
             
-            // Create budget using direct mutation matching n8n REST API call
-            console.log('Creating campaign budget with amountMicros:', budgetMicros);
+            // Check if using smart bidding (requires implicit budget without name)
+            const isSmartBidding = ['MAXIMIZE_CONVERSIONS', 'TARGET_CPA', 'MAXIMIZE_CONVERSION_VALUE', 'TARGET_ROAS'].includes(bidStrategy);
             
-            // Create budget matching n8n working format
-            const budgetResponse = await customer.campaignBudgets.create([{
-                name: `${campaignName} Budget ${Date.now()}`,
-                amount_micros: budgetMicros,  // As number, not string
-                delivery_method: 'STANDARD'
-            }]);
+            console.log('Creating campaign budget with amountMicros:', budgetMicros);
+            console.log('Bid strategy:', bidStrategy, '| Smart bidding:', isSmartBidding);
+            
+            // Create budget based on bidding strategy
+            // Smart bidding requires implicit budget (NO name), manual bidding works with named budget
+            const budgetOperation = isSmartBidding 
+                ? {
+                    amount_micros: budgetMicros,
+                    delivery_method: 'STANDARD'
+                    // NO name = implicit budget (required for smart bidding)
+                }
+                : {
+                    name: `${campaignName} Budget ${Date.now()}`,
+                    amount_micros: budgetMicros,
+                    delivery_method: 'STANDARD'
+                    // With name = shared budget (works with manual bidding)
+                };
+            
+            const budgetResponse = await customer.campaignBudgets.create([budgetOperation]);
             
             console.log('Budget response type:', typeof budgetResponse);
             console.log('Budget response:', JSON.stringify(budgetResponse, null, 2));
