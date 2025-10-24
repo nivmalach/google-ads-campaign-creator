@@ -22,11 +22,27 @@ class GoogleAdsAuth {
     static async getCustomerIds(refreshToken) {
         try {
             const client = this.getInstance();
+            console.log('Fetching accessible customers with refresh token...');
             const response = await client.listAccessibleCustomers(refreshToken);
-            return response.resource_names.map(name => name.split('/').pop() || '');
+            console.log('API Response:', JSON.stringify(response, null, 2));
+            
+            if (!response || !response.resource_names) {
+                console.error('No resource_names in response:', response);
+                return [];
+            }
+            
+            const customerIds = response.resource_names.map(name => {
+                const id = name.split('/').pop() || '';
+                console.log('Extracted customer ID:', id);
+                return id;
+            });
+            
+            console.log('Total customers found:', customerIds.length);
+            return customerIds;
         }
         catch (error) {
             console.error('Error fetching customer IDs:', error);
+            console.error('Error details:', error.message, error.stack);
             throw error;
         }
     }

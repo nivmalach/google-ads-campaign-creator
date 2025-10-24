@@ -37,15 +37,24 @@ class AuthController {
     static async listAccounts(req, res) {
         try {
             const { refreshToken } = req.body;
+            console.log('listAccounts called, refreshToken provided:', !!refreshToken);
+            
             if (!refreshToken) {
                 return res.status(400).json({ error: 'Refresh token is required' });
             }
+            
             const customerIds = await googleAdsAuth_1.GoogleAdsAuth.getCustomerIds(refreshToken);
-            res.json({ accounts: customerIds });
+            console.log('Customer IDs retrieved:', customerIds);
+            
+            res.json({ accounts: customerIds, count: customerIds.length });
         }
         catch (error) {
             console.error('Error listing accounts:', error);
-            res.status(500).json({ error: 'Failed to list accounts' });
+            console.error('Error message:', error.message);
+            res.status(500).json({ 
+                error: 'Failed to list accounts',
+                details: error.message 
+            });
         }
     }
     static async validateToken(req, res) {
