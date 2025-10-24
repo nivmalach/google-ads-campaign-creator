@@ -194,9 +194,27 @@
         const urlParams = new URLSearchParams(window.location.search);
         const code = urlParams.get('code');
         const error = urlParams.get('error');
+        const refreshToken = urlParams.get('refresh_token');
+        const accessToken = urlParams.get('access_token');
 
         if (error) {
             showError('Authentication failed: ' + error);
+        } else if (refreshToken && accessToken) {
+            // We got tokens directly from redirect
+            sessionStorage.removeItem('authenticating');
+            sessionStorage.setItem('refreshToken', refreshToken);
+            sessionStorage.setItem('accessToken', accessToken);
+            
+            // Update UI
+            document.getElementById('connectionStatus').className = 'status connected';
+            document.getElementById('connectionStatus').textContent = 'Connected';
+            showSuccess('Successfully connected to Google Ads!');
+            
+            // Clean URL
+            window.history.replaceState({}, document.title, '/gacc');
+            
+            // Load accounts
+            loadAccounts(refreshToken);
         } else if (code && sessionStorage.getItem('authenticating')) {
             sessionStorage.removeItem('authenticating');
             handleOAuthCallback(code);
