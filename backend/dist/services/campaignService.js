@@ -38,12 +38,12 @@ class CampaignService {
                 create: {
                     name: `Budget for ${campaignName}`,
                     amount_micros: budgetMicros,
-                    delivery_method: 'STANDARD', // or 'ACCELERATED'
-                    explicitly_shared: false
+                    delivery_method: 'STANDARD',
+                    period: 'DAILY'
                 }
             };
 
-            console.log('Creating campaign budget...');
+            console.log('Creating campaign budget with operation:', JSON.stringify(budgetOperation, null, 2));
             const budgetResponse = await customer.campaignBudgets.create([budgetOperation]);
             const budgetResourceName = budgetResponse.results[0].resource_name;
             console.log('Budget created:', budgetResourceName);
@@ -180,7 +180,8 @@ class CampaignService {
                 'japan': '2392',
                 'india': '2356',
                 'brazil': '2076',
-                'mexico': '2484'
+                'mexico': '2484',
+                'israel': '2376'
             };
 
             const geoTargets = [];
