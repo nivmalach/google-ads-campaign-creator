@@ -19,21 +19,14 @@ COPY backend/package.json ./backend/
 COPY frontend/dist ./public
 
 # Fix frontend asset paths for BASE_PATH deployment
-# This runs during Docker build, so you never have to patch manually
 RUN sed -i 's|href="/vite.svg"|href="/gacc/vite.svg"|g' ./public/index.html && \
     sed -i 's|src="/assets/|src="/gacc/assets/|g' ./public/index.html && \
     sed -i 's|href="/assets/|href="/gacc/assets/|g' ./public/index.html && \
-    sed -i 's|<meta charset="UTF-8" />|<meta charset="UTF-8" />\n    <base href="/gacc/" />|' ./public/index.html && \
-    sed -i 's|<title>frontend</title>|<title>Google Ads Campaign Creator</title>|' ./public/index.html && \
-    sed -i "s|const code = urlParams.get('code');|const code = urlParams.get('code');\n        const refreshToken = urlParams.get('refresh_token');\n        const accessToken = urlParams.get('access_token');|" ./public/index.html && \
-    sed -i "s|if (error) {|if (error) {|; s|} else if (code|} else if (refreshToken \&\& accessToken) {\n            sessionStorage.removeItem('authenticating');\n            sessionStorage.setItem('refreshToken', refreshToken);\n            sessionStorage.setItem('accessToken', accessToken);\n            document.getElementById('connectionStatus').className = 'status connected';\n            document.getElementById('connectionStatus').textContent = 'Connected';\n            showSuccess('Successfully connected to Google Ads!');\n            window.history.replaceState({}, document.title, '/gacc');\n            loadAccounts(refreshToken);\n        } else if (code|" ./public/index.html
+    sed -i 's|<title>frontend</title>|<title>Google Ads Campaign Creator</title>|' ./public/index.html
 
 # Fix OAuth2 to include redirect_uri in both auth URL and token exchange
-RUN sed -i "s|return this.oauth2Client.generateAuthUrl({|const redirectUri = process.env.OAUTH_REDIRECT_URI \|\| 'https://opsotools.com/gacc/api/auth/callback';\n        return this.oauth2Client.generateAuthUrl({\n            redirect_uri: redirectUri,|" ./backend/dist/utils/oauth2.js && \
-    sed -i "s|const { tokens } = await this.oauth2Client.getToken(code);|const redirectUri = process.env.OAUTH_REDIRECT_URI \|\| 'https://opsotools.com/gacc/api/auth/callback';\n            const { tokens } = await this.oauth2Client.getToken({\n                code: code,\n                redirect_uri: redirectUri\n            });|" ./backend/dist/utils/oauth2.js
-
-# Fix OAuth callback to redirect to frontend instead of showing JSON
-RUN sed -i "s|res.json({|const redirectUrl = \`\${process.env.BASE_PATH || ''}/gacc?code=\${code}\&refresh_token=\${tokens.refresh_token || ''}\&access_token=\${tokens.access_token || ''}\`;\n            res.redirect(redirectUrl);\n            return;\n            res.json({|" ./backend/dist/controllers/authController.js
+RUN sed -i 's|return this.oauth2Client.generateAuthUrl({|const redirectUri = process.env.OAUTH_REDIRECT_URI; return this.oauth2Client.generateAuthUrl({ redirect_uri: redirectUri,|' ./backend/dist/utils/oauth2.js && \
+    sed -i 's|await this.oauth2Client.getToken(code)|await this.oauth2Client.getToken({ code: code, redirect_uri: process.env.OAUTH_REDIRECT_URI })|' ./backend/dist/utils/oauth2.js
 
 # Expose port
 EXPOSE 3000
