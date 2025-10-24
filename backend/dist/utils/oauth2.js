@@ -4,8 +4,10 @@ exports.OAuth2Helper = void 0;
 const googleapis_1 = require("googleapis");
 class OAuth2Helper {
     static getAuthUrl() {
+        const redirectUri = process.env.OAUTH_REDIRECT_URI || 'https://opsotools.com/gacc/api/auth/callback';
         return this.oauth2Client.generateAuthUrl({
             access_type: 'offline',
+            redirect_uri: redirectUri,
             scope: [
                 'https://www.googleapis.com/auth/adwords',
                 'https://www.googleapis.com/auth/userinfo.profile',
