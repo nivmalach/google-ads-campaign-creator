@@ -285,24 +285,39 @@ class CampaignService {
     static async addDeviceTargeting(customer, campaignResourceName, devices) {
         try {
             // Map device names to Google Ads device types
-            const deviceMap = {
-                'MOBILE': 30000,  // Mobile devices
-                'DESKTOP': 30001, // Desktop/laptop
-                'TABLET': 30002   // Tablets
+            const allDevices = {
+                'MOBILE': 30000,
+                'DESKTOP': 30001,
+                'TABLET': 30002
             };
             
-            // By default, all devices are targeted. To exclude devices not in the list,
-            // we need to set negative bid adjustments or use campaign criteria
-            // For now, we'll log the devices (full device targeting requires ad group level config)
             console.log('Device targeting requested:', devices);
-            console.log('Note: Device targeting is best configured at ad group level');
             
-            // Device targeting in Google Ads is typically done through bid adjustments
-            // at the campaign level, or through criteria at the ad group level
-            // For MVP, we'll just log this - full implementation requires ad groups
+            // Find devices to EXCLUDE (all devices that are NOT in the selected list)
+            const devicesToExclude = Object.keys(allDevices).filter(device => !devices.includes(device));
+            
+            if (devicesToExclude.length > 0) {
+                console.log('Excluding devices:', devicesToExclude);
+                
+                // Create negative campaign criteria for excluded devices
+                const excludeCriteriaOperations = devicesToExclude.map(device => ({
+                    campaign: campaignResourceName,
+                    device: {
+                        type: allDevices[device]
+                    },
+                    negative: true
+                }));
+                
+                console.log('Creating negative device criteria:', JSON.stringify(excludeCriteriaOperations, null, 2));
+                await customer.campaignCriteria.create(excludeCriteriaOperations);
+                console.log(`Excluded ${devicesToExclude.length} device types successfully`);
+            } else {
+                console.log('All devices are targeted (default)');
+            }
         }
         catch (error) {
             console.error('Error adding device targeting:', error);
+            console.error('Error details:', error.message, error.stack);
             // Don't throw - campaign is already created
         }
     }
