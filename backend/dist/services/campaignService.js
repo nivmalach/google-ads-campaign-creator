@@ -40,18 +40,18 @@ class CampaignService {
             console.log('Bid strategy:', bidStrategy, '| Smart bidding:', isSmartBidding);
             
             // Create budget based on bidding strategy
-            // Smart bidding requires implicit budget (NO name), manual bidding works with named budget
+            // Smart bidding requires implicit budget, manual bidding works with shared budget
             const budgetOperation = isSmartBidding 
                 ? {
                     amount_micros: budgetMicros,
-                    delivery_method: 'STANDARD'
-                    // NO name = implicit budget (required for smart bidding)
+                    delivery_method: 'STANDARD',
+                    explicitly_shared: false  // Explicitly set as non-shared for smart bidding
                 }
                 : {
                     name: `${campaignName} Budget ${Date.now()}`,
                     amount_micros: budgetMicros,
-                    delivery_method: 'STANDARD'
-                    // With name = shared budget (works with manual bidding)
+                    delivery_method: 'STANDARD',
+                    explicitly_shared: true  // Explicitly set as shared for manual bidding
                 };
             
             const budgetResponse = await customer.campaignBudgets.create([budgetOperation]);
