@@ -65,7 +65,7 @@ class CampaignService {
             // Build location targeting (geo target constants)
             const geoTargets = await this.getGeoTargetConstants(customer, locations);
             
-            // Create the campaign
+            // Create the campaign matching n8n format exactly
             const campaignData = {
                 name: `${campaignName}-${Date.now()}`,
                 status: status || 'PAUSED',
@@ -77,7 +77,9 @@ class CampaignService {
                     target_search_network: false,
                     target_content_network: true,
                     target_partner_search_network: false
-                }
+                },
+                // Required field from n8n working automation
+                contains_eu_political_advertising: 'DOES_NOT_CONTAIN_EU_POLITICAL_ADVERTISING'
             };
 
             console.log('Creating campaign with data:', JSON.stringify(campaignData, null, 2));
@@ -137,9 +139,7 @@ class CampaignService {
         switch (strategy) {
             case 'MANUAL_CPC':
                 return {
-                    manual_cpc: {
-                        enhanced_cpc_enabled: true
-                    }
+                    manual_cpc: {}  // Empty object like n8n automation
                 };
             
             case 'TARGET_CPA':
