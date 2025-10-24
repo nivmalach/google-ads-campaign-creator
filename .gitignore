@@ -7,7 +7,7 @@
 node_modules/
 
 # Build outputs
-dist/
+# dist/ - Tracking dist/ for MVP deployment (deploying compiled files)
 build/
 
 # OS files

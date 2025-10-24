@@ -22,8 +22,11 @@ class AuthController {
             }
             const tokens = await oauth2_1.OAuth2Helper.getTokens(code);
             // Initialize Google Ads API with the tokens
-            const { clientId, clientSecret, developerToken } = process.env;
-            googleAdsAuth_1.GoogleAdsAuth.initialize(clientId, clientSecret, developerToken);
+            googleAdsAuth_1.GoogleAdsAuth.initialize(
+                process.env.GOOGLE_ADS_CLIENT_ID,
+                process.env.GOOGLE_ADS_CLIENT_SECRET,
+                process.env.GOOGLE_ADS_DEVELOPER_TOKEN
+            );
             
             // Redirect back to frontend with tokens
             const redirectUrl = `${process.env.BASE_PATH || ''}/gacc?code=${code}&refresh_token=${tokens.refresh_token || ''}&access_token=${tokens.access_token || ''}`;
