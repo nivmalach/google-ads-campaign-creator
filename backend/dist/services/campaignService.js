@@ -42,8 +42,20 @@ class CampaignService {
                 delivery_method: 'STANDARD'
             });
             
+            console.log('Budget response type:', typeof budgetResponse);
             console.log('Budget response:', JSON.stringify(budgetResponse, null, 2));
-            const budgetResourceName = budgetResponse.results[0].resource_name;
+            
+            // Handle different response formats
+            let budgetResourceName;
+            if (budgetResponse.results && budgetResponse.results.length > 0) {
+                budgetResourceName = budgetResponse.results[0].resource_name;
+            } else if (budgetResponse.resource_name) {
+                budgetResourceName = budgetResponse.resource_name;
+            } else if (typeof budgetResponse === 'string') {
+                budgetResourceName = budgetResponse;
+            } else {
+                throw new Error('Unable to extract budget resource name from response');
+            }
             console.log('Budget created successfully:', budgetResourceName);
 
             // Build bidding strategy configuration
@@ -69,9 +81,23 @@ class CampaignService {
 
             console.log('Creating campaign with data:', JSON.stringify(campaignData, null, 2));
             const campaignResponse = await customer.campaigns.create(campaignData);
-            const campaignResourceName = campaignResponse.results[0].resource_name;
-            const campaignId = campaignResourceName.split('/').pop();
             
+            console.log('Campaign response type:', typeof campaignResponse);
+            console.log('Campaign response:', JSON.stringify(campaignResponse, null, 2));
+            
+            // Handle different response formats
+            let campaignResourceName;
+            if (campaignResponse.results && campaignResponse.results.length > 0) {
+                campaignResourceName = campaignResponse.results[0].resource_name;
+            } else if (campaignResponse.resource_name) {
+                campaignResourceName = campaignResponse.resource_name;
+            } else if (typeof campaignResponse === 'string') {
+                campaignResourceName = campaignResponse;
+            } else {
+                throw new Error('Unable to extract campaign resource name from response');
+            }
+            
+            const campaignId = campaignResourceName.split('/').pop();
             console.log('Campaign created:', campaignResourceName);
 
             // Add location targeting if provided
