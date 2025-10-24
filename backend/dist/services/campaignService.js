@@ -33,17 +33,15 @@ class CampaignService {
             // Convert daily budget to micros (Google Ads uses micros for currency)
             const budgetMicros = Math.round(dailyBudget * 1_000_000);
             
-            // Create budget using the same structure as working n8n automation
+            // Create budget using direct mutation matching n8n REST API call
             console.log('Creating campaign budget with amountMicros:', budgetMicros);
-            const budgetOperation = {
-                create: {
-                    name: `${campaignName} - Budget - ${Date.now()}`,
-                    amountMicros: budgetMicros,
-                    deliveryMethod: 'STANDARD'
-                }
-            };
             
-            const budgetResponse = await customer.campaignBudgets.create([budgetOperation]);
+            const budgetResponse = await customer.campaignBudgets.create({
+                name: `${campaignName} - Budget - ${Date.now()}`,
+                amount_micros: budgetMicros.toString(),
+                delivery_method: 'STANDARD'
+            });
+            
             console.log('Budget response:', JSON.stringify(budgetResponse, null, 2));
             const budgetResourceName = budgetResponse.results[0].resource_name;
             console.log('Budget created successfully:', budgetResourceName);
@@ -54,26 +52,23 @@ class CampaignService {
             // Build location targeting (geo target constants)
             const geoTargets = await this.getGeoTargetConstants(customer, locations);
             
-            // Create the campaign using the same structure as working n8n automation
-            const campaignOperation = {
-                create: {
-                    name: `${campaignName}-${Date.now()}`,
-                    status: status || 'PAUSED',
-                    advertisingChannelType: 'DISPLAY',
-                    campaignBudget: budgetResourceName,
-                    ...biddingConfig,
-                    networkSettings: {
-                        targetGoogleSearch: false,
-                        targetSearchNetwork: false,
-                        targetContentNetwork: true,
-                        targetPartnerSearchNetwork: false
-                    },
-                    containsEuPoliticalAdvertising: 'DOES_NOT_CONTAIN_EU_POLITICAL_ADVERTISING'
+            // Create the campaign
+            const campaignData = {
+                name: `${campaignName}-${Date.now()}`,
+                status: status || 'PAUSED',
+                advertising_channel_type: 'DISPLAY',
+                campaign_budget: budgetResourceName,
+                ...biddingConfig,
+                network_settings: {
+                    target_google_search: false,
+                    target_search_network: false,
+                    target_content_network: true,
+                    target_partner_search_network: false
                 }
             };
 
-            console.log('Creating campaign with operation:', JSON.stringify(campaignOperation, null, 2));
-            const campaignResponse = await customer.campaigns.create([campaignOperation]);
+            console.log('Creating campaign with data:', JSON.stringify(campaignData, null, 2));
+            const campaignResponse = await customer.campaigns.create(campaignData);
             const campaignResourceName = campaignResponse.results[0].resource_name;
             const campaignId = campaignResourceName.split('/').pop();
             
@@ -115,40 +110,40 @@ class CampaignService {
         switch (strategy) {
             case 'MANUAL_CPC':
                 return {
-                    manualCpc: {
-                        enhancedCpcEnabled: true
+                    manual_cpc: {
+                        enhanced_cpc_enabled: true
                     }
                 };
             
             case 'TARGET_CPA':
                 if (!bidAmount) throw new Error('Target CPA requires a bid amount');
                 return {
-                    targetCpa: {
-                        targetCpaMicros: Math.round(bidAmount * 1_000_000)
+                    target_cpa: {
+                        target_cpa_micros: Math.round(bidAmount * 1_000_000)
                     }
                 };
             
             case 'TARGET_ROAS':
                 if (!bidAmount) throw new Error('Target ROAS requires a target value');
                 return {
-                    targetRoas: {
-                        targetRoas: bidAmount
+                    target_roas: {
+                        target_roas: bidAmount
                     }
                 };
             
             case 'MAXIMIZE_CONVERSIONS':
                 return {
-                    maximizeConversions: {}
+                    maximize_conversions: {}
                 };
             
             case 'MAXIMIZE_CONVERSION_VALUE':
                 return {
-                    maximizeConversionValue: {}
+                    maximize_conversion_value: {}
                 };
             
             default:
                 return {
-                    manualCpc: {}
+                    manual_cpc: {}
                 };
         }
     }
@@ -190,7 +185,7 @@ class CampaignService {
                 
                 if (geoId) {
                     geoTargets.push({
-                        geoTargetConstant: `geoTargetConstants/${geoId}`
+                        geo_target_constant: `geoTargetConstants/${geoId}`
                     });
                 } else {
                     console.warn(`Location not found in map: ${location}`);
