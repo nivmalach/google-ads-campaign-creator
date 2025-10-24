@@ -54,10 +54,22 @@ if (BASE_PATH) {
     app.use(express_1.default.static(publicPath));
 }
 
-// Catch-all route to serve index.html for client-side routing
-app.get(`${BASE_PATH}/*`, (req, res) => {
+// Catch-all routes to serve index.html for client-side routing
+const serveIndex = (req, res) => {
     res.sendFile(path_1.default.join(publicPath, 'index.html'));
-});
+};
+
+if (BASE_PATH) {
+    // Exact base path (e.g., /gacc)
+    app.get(BASE_PATH, serveIndex);
+    // Base path with trailing slash (e.g., /gacc/)
+    app.get(`${BASE_PATH}/`, serveIndex);
+    // Any subpaths (e.g., /gacc/anything)
+    app.get(`${BASE_PATH}/*`, serveIndex);
+} else {
+    // Root path
+    app.get('*', serveIndex);
+}
 
 const PORT = process.env.PORT || 3000;
 
