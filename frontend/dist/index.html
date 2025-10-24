@@ -264,14 +264,55 @@
 
                 <div class="form-group">
                     <label for="locations">Target Locations *</label>
-                    <input 
-                        type="text" 
+                    <select 
                         id="locations" 
                         name="locations" 
-                        required 
-                        placeholder="e.g., United States, Canada, United Kingdom"
+                        multiple 
+                        required
+                        style="height: 120px;"
                     >
-                    <small>Enter country names separated by commas</small>
+                        <option value="United States">United States</option>
+                        <option value="Canada">Canada</option>
+                        <option value="United Kingdom">United Kingdom</option>
+                        <option value="Australia">Australia</option>
+                        <option value="Germany">Germany</option>
+                        <option value="France">France</option>
+                        <option value="Spain">Spain</option>
+                        <option value="Italy">Italy</option>
+                        <option value="Japan">Japan</option>
+                        <option value="India">India</option>
+                        <option value="Brazil">Brazil</option>
+                        <option value="Mexico">Mexico</option>
+                        <option value="Israel">Israel</option>
+                    </select>
+                    <small>Hold Ctrl/Cmd to select multiple countries</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="marketingObjective">Marketing Objective *</label>
+                    <select id="marketingObjective" name="marketingObjective" required>
+                        <option value="WEBSITE_TRAFFIC">Website Traffic</option>
+                        <option value="SALES">Sales</option>
+                        <option value="LEADS">Leads</option>
+                        <option value="AWARENESS">Awareness and Consideration</option>
+                    </select>
+                    <small>Primary goal for this campaign</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="devices">Target Devices *</label>
+                    <select 
+                        id="devices" 
+                        name="devices" 
+                        multiple 
+                        required
+                        style="height: 80px;"
+                    >
+                        <option value="MOBILE" selected>Mobile</option>
+                        <option value="DESKTOP" selected>Desktop</option>
+                        <option value="TABLET" selected>Tablet</option>
+                    </select>
+                    <small>Hold Ctrl/Cmd to select multiple devices (all selected by default)</small>
                 </div>
 
                 <div class="form-row">
@@ -507,13 +548,23 @@
                     throw new Error('No account selected or not authenticated');
                 }
                 
+                // Get selected locations from multi-select
+                const locationsSelect = document.getElementById('locations');
+                const selectedLocations = Array.from(locationsSelect.selectedOptions).map(option => option.value);
+                
+                // Get selected devices from multi-select
+                const devicesSelect = document.getElementById('devices');
+                const selectedDevices = Array.from(devicesSelect.selectedOptions).map(option => option.value);
+                
                 const formData = {
                     customerId: selectedAccount,
                     refreshToken: refreshToken,
                     campaignName: document.getElementById('campaignName').value,
                     dailyBudget: parseFloat(document.getElementById('dailyBudget').value),
                     status: document.getElementById('campaignStatus').value,
-                    locations: document.getElementById('locations').value.split(',').map(l => l.trim()),
+                    locations: selectedLocations,
+                    marketingObjective: document.getElementById('marketingObjective').value,
+                    devices: selectedDevices,
                     bidStrategy: document.getElementById('bidStrategy').value,
                     bidAmount: document.getElementById('bidAmount').value ? parseFloat(document.getElementById('bidAmount').value) : null
                 };

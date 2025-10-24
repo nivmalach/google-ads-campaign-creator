@@ -9,7 +9,7 @@ class CampaignController {
      */
     static async createCampaign(req, res) {
         try {
-            const { customerId, refreshToken, campaignName, dailyBudget, status, locations, bidStrategy, bidAmount } = req.body;
+            const { customerId, refreshToken, campaignName, dailyBudget, status, locations, marketingObjective, devices, bidStrategy, bidAmount } = req.body;
 
             // Validate required fields
             if (!customerId) {
@@ -53,6 +53,8 @@ class CampaignController {
                 dailyBudget,
                 status,
                 locationCount: locations?.length || 0,
+                marketingObjective,
+                deviceCount: devices?.length || 0,
                 bidStrategy
             });
 
@@ -64,6 +66,8 @@ class CampaignController {
                 dailyBudget,
                 status: status || 'PAUSED',
                 locations: locations || [],
+                marketingObjective: marketingObjective || 'WEBSITE_TRAFFIC',
+                devices: devices || ['MOBILE', 'DESKTOP', 'TABLET'],
                 bidStrategy,
                 bidAmount
             });

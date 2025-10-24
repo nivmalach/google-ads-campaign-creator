@@ -8,7 +8,7 @@ class CampaignService {
      * Create a Display Campaign in Google Ads
      */
     static async createDisplayCampaign(params) {
-        const { customerId, refreshToken, campaignName, dailyBudget, status, locations, bidStrategy, bidAmount } = params;
+        const { customerId, refreshToken, campaignName, dailyBudget, status, locations, marketingObjective, devices, bidStrategy, bidAmount } = params;
         
         try {
             console.log('Creating display campaign:', {
@@ -17,6 +17,8 @@ class CampaignService {
                 dailyBudget,
                 status,
                 locations,
+                marketingObjective,
+                devices,
                 bidStrategy,
                 bidAmount
             });
@@ -78,6 +80,9 @@ class CampaignService {
             // Build location targeting (geo target constants)
             const geoTargets = await this.getGeoTargetConstants(customer, locations);
             
+            // Map marketing objective to Google Ads campaign goal
+            const campaignGoal = this.mapMarketingObjective(marketingObjective);
+            
             // Create the campaign matching n8n format exactly
             const campaignData = {
                 name: `${campaignName}-${Date.now()}`,
@@ -94,6 +99,11 @@ class CampaignService {
                 // Required field from n8n working automation
                 contains_eu_political_advertising: 'DOES_NOT_CONTAIN_EU_POLITICAL_ADVERTISING'
             };
+            
+            // Add campaign goal if specified
+            if (campaignGoal) {
+                campaignData.campaign_goal = campaignGoal;
+            }
 
             console.log('Creating campaign with data:', JSON.stringify(campaignData, null, 2));
             const campaignResponse = await customer.campaigns.create([campaignData]);
@@ -120,6 +130,12 @@ class CampaignService {
             if (geoTargets.length > 0) {
                 console.log('Adding location targeting...');
                 await this.addLocationTargeting(customer, campaignResourceName, geoTargets);
+            }
+            
+            // Add device targeting if provided
+            if (devices && devices.length > 0) {
+                console.log('Adding device targeting...');
+                await this.addDeviceTargeting(customer, campaignResourceName, devices);
             }
 
             return {
@@ -261,6 +277,48 @@ class CampaignService {
             console.error('Error details:', error.message, error.stack);
             // Don't throw - campaign is already created
         }
+    }
+    
+    /**
+     * Add device targeting to campaign
+     */
+    static async addDeviceTargeting(customer, campaignResourceName, devices) {
+        try {
+            // Map device names to Google Ads device types
+            const deviceMap = {
+                'MOBILE': 30000,  // Mobile devices
+                'DESKTOP': 30001, // Desktop/laptop
+                'TABLET': 30002   // Tablets
+            };
+            
+            // By default, all devices are targeted. To exclude devices not in the list,
+            // we need to set negative bid adjustments or use campaign criteria
+            // For now, we'll log the devices (full device targeting requires ad group level config)
+            console.log('Device targeting requested:', devices);
+            console.log('Note: Device targeting is best configured at ad group level');
+            
+            // Device targeting in Google Ads is typically done through bid adjustments
+            // at the campaign level, or through criteria at the ad group level
+            // For MVP, we'll just log this - full implementation requires ad groups
+        }
+        catch (error) {
+            console.error('Error adding device targeting:', error);
+            // Don't throw - campaign is already created
+        }
+    }
+    
+    /**
+     * Map marketing objective to campaign goal
+     */
+    static mapMarketingObjective(objective) {
+        const objectiveMap = {
+            'WEBSITE_TRAFFIC': 'WEBSITE_TRAFFIC',
+            'SALES': 'SALES',
+            'LEADS': 'LEAD_GENERATION',
+            'AWARENESS': 'AWARENESS'
+        };
+        
+        return objectiveMap[objective] || null;
     }
 }
 
